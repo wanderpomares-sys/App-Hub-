@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0F3138">
+<meta name="robots" content="noindex,nofollow">
+<title>AppHub</title>
+<style>
+:root{--bg:#F3F6F7;--card:#fff;--ink:#0F2A30;--muted:#5A7378;--line:#D8E3E5;--brand:#0F5964;--brand-ink:#fff;--ok:#1F9D55;--warn:#F08A1C;--danger:#C0392B}
+@media (prefers-color-scheme:dark){:root{--bg:#0B1A1E;--card:#12272D;--ink:#E6F2F3;--muted:#92B0B5;--line:#21424A;--brand:#37B6C6;--brand-ink:#06242A;--ok:#4CD38A;--warn:#FFA94D;--danger:#FF7A6B}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:max(24px,env(safe-area-inset-bottom))}
+header.top{position:sticky;top:0;z-index:5;background:var(--card);border-bottom:1px solid var(--line);padding:max(10px,env(safe-area-inset-top)) 16px 10px;display:flex;align-items:center;gap:10px;min-height:56px}
+header.top h1{font-size:20px;margin:0;flex:1}
+main{max-width:720px;margin:0 auto;padding:16px}
+button,.btn{font:inherit;min-height:48px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:0 16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+button.primary,.btn.primary{background:var(--brand);color:var(--brand-ink);border-color:var(--brand);font-weight:700}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+.totais{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+.tot{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px}
+.tot b{display:block;font-size:28px;line-height:1.1}
+.tot span{color:var(--muted);font-size:14px}
+.lista{display:flex;flex-direction:column;gap:8px;padding:0;margin:0;list-style:none}
+.app{width:100%;text-align:left;justify-content:flex-start;min-height:64px;padding:10px 14px;gap:12px}
+.app .nome{flex:1;min-width:0}
+.app .nome b{display:block}
+.app .nome small{color:var(--muted);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dot{width:16px;height:16px;border-radius:50%;flex:none}
+.dot.ok{background:var(--ok)}.dot.warn{background:var(--warn)}
+.chev{color:var(--muted);font-size:22px}
+section.box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:14px 0}
+section.box h2{font-size:18px;margin:0 0 10px}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kv div{background:var(--bg);border-radius:12px;padding:10px 12px}
+.kv b{display:block;font-size:22px}
+.kv span{color:var(--muted);font-size:14px}
+.muted{color:var(--muted)}
+.row{display:flex;gap:8px;align-items:center}
+input[type=text],textarea{font:inherit;width:100%;min-height:48px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:10px 12px}
+textarea{min-height:96px;resize:vertical}
+.tarefas{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.tarefa{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:12px;padding:6px 8px}
+.tarefa input[type=checkbox]{width:26px;height:26px;flex:none}
+.tarefa .txt{flex:1;min-width:0;word-break:break-word}
+.tarefa.feita .txt{text-decoration:line-through;color:var(--muted)}
+.tarefa button{min-height:44px;padding:0 12px}
+.danger{color:var(--danger);border-color:var(--danger)}
+.redes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.telas{margin:8px 0 0;padding-left:20px}
+.toast{position:fixed;left:50%;bottom:max(20px,env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:12px;z-index:20;max-width:90vw}
+label.l{display:block;font-weight:700;margin:12px 0 4px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header class="top">
+  <button id="btnVoltar" type="button" aria-label="Voltar" hidden>‹</button>
+  <h1 id="titulo">AppHub</h1>
+</header>
+<main id="main"></main>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+/* ============ Lista de apps (edite aqui para incluir apps novos) ============ */
+var APPS = [
+  {id:'imperio', nome:'Império das Máquinas', dominio:'imperiodasmaquinaspesadas.com.br', ga:'G-CKZJJV1B8E', desc:'Jogo de estratégia: gerencie uma empresa de máquinas pesadas, faça manutenção, escolha contratos e construa seu império.', tags:'#ImperioDasMaquinas #jogo #estrategia #maquinaspesadas #jogosmobile'},
+  {id:'babadopet', nome:'Babá do Pet', dominio:'babadopet.com.br', ga:'G-G16QMJ72XX', desc:'App grátis de cuidados com pets: agenda, lembretes e dicas para o dia a dia do seu bichinho. Sem cadastro.', tags:'#BabaDoPet #pets #cuidadospet #petlovers #app'},
+  {id:'smartfinance', nome:'Smart Finance Family', dominio:'smartfinancefamily.com.br', ga:'G-Z7FZXMZ9QB', desc:'Controle financeiro da família, com os dados guardados só no seu aparelho.', tags:'#SmartFinanceFamily #financaspessoais #controlefinanceiro #educacaofinanceira #app'},
+  {id:'achados', nome:'Achados de Condomínio', dominio:'achadosdecondominios.com.br', ga:'G-DQJZF2ZTJP', desc:'Compre, venda e troque com os vizinhos do seu condomínio, com segurança e sem sair do prédio.', tags:'#AchadosDeCondominio #condominio #vizinhos #comprasevendas #app'},
+  {id:'gemmo', nome:'Gemmo Combo', dominio:'gemmo.com.br', ga:'G-776C53RGP8', desc:'Jogo de combinar gemas com fases, combos e prêmios. Grátis, sem cadastro.', tags:'#GemmoCombo #jogo #match3 #puzzle #jogosmobile'},
+  {id:'telejogo', nome:'Tele Game Vintage', dominio:'', ga:'', desc:'', tags:''},
+  {id:'zap', nome:'ZAP Organiza', dominio:'', ga:'', desc:'', tags:''},
+  {id:'radar', nome:'Radar de golpes', dominio:'', ga:'', desc:'', tags:'', obs:'Ainda sem divulgação, em teste.'}
+];
+var KEY='apphub.v1';
+var estado = {tarefas:{}, textos:{}};
+var dados = {atualizado:null, apps:{}};
+
+try{ var salvo=JSON.parse(localStorage.getItem(KEY)||'null'); if(salvo&&salvo.tarefas) estado=salvo; if(!estado.textos) estado.textos={}; }catch(e){}
+function salvar(){ try{ localStorage.setItem(KEY, JSON.stringify(estado)); }catch(e){} }
+
+var $=function(id){return document.getElementById(id);};
+function el(tag, props, kids){
+  var n=document.createElement(tag);
+  Object.keys(props||{}).forEach(function(k){
+    if(k==='text') n.textContent=props[k];
+    else if(k==='class') n.className=props[k];
+    else if(k.indexOf('on')===0) n.addEventListener(k.slice(2), props[k]);
+    else n.setAttribute(k, props[k]);
+  });
+  (kids||[]).forEach(function(c){ if(c) n.appendChild(typeof c==='string'?document.createTextNode(c):c); });
+  return n;
+}
+function toast(msg){ var t=$('toast'); t.textContent=msg; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(function(){t.hidden=true;},1800); }
+function copiar(txt){
+  function fallback(){ var ta=el('textarea',{}); ta.value=txt; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');toast('Copiado');}catch(e){toast('Não consegui copiar');} ta.remove(); }
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(function(){toast('Copiado');},fallback); } else fallback();
+}
+function abertas(id){ return (estado.tarefas[id]||[]).filter(function(t){return !t.feita;}).length; }
+function fmtNum(n){ return (n===null||n===undefined)?'—':new Intl.NumberFormat('pt-BR').format(n); }
+function fmtTempo(s){ if(s===null||s===undefined) return '—'; var m=Math.floor(s/60), r=Math.round(s%60); return m+'min '+(r<10?'0':'')+r+'s'; }
+function getApp(id){ return APPS.filter(function(a){return a.id===id;})[0]; }
+function textoApp(a){ var t=estado.textos[a.id]||{}; return {desc:(t.desc!==undefined?t.desc:a.desc), tags:(t.tags!==undefined?t.tags:a.tags)}; }
+
+/* ============ Tela principal ============ */
+function telaPrincipal(){
+  document.title='AppHub'; $('titulo').textContent='AppHub'; $('btnVoltar').hidden=true;
+  var m=$('main'); m.textContent='';
+  var comPend=APPS.filter(function(a){return abertas(a.id)>0;}).length;
+  var totAbertas=APPS.reduce(function(s,a){return s+abertas(a.id);},0);
+  var totUsuarios=null; Object.keys(dados.apps||{}).forEach(function(k){ var u=dados.apps[k]&&dados.apps[k].usuarios; if(typeof u==='number') totUsuarios=(totUsuarios||0)+u; });
+  var tot=el('div',{class:'totais'},[
+    el('div',{class:'tot'},[el('b',{text:String(APPS.length)}),el('span',{text:'apps'})]),
+    el('div',{class:'tot'},[el('b',{text:String(comPend)}),el('span',{text:'com pendências'})]),
+    el('div',{class:'tot'},[el('b',{text:String(totAbertas)}),el('span',{text:'tarefas abertas'})]),
+    el('div',{class:'tot'},[el('b',{text:fmtNum(totUsuarios)}),el('span',{text:'usuários (30 dias)'})])
+  ]);
+  m.appendChild(tot);
+  var ul=el('ul',{class:'lista'});
+  APPS.forEach(function(a){
+    var n=abertas(a.id);
+    var b=el('button',{class:'app',type:'button',onclick:function(){location.hash='#/app/'+a.id;}},[
+      el('span',{class:'dot '+(n>0?'warn':'ok'),'aria-hidden':'true'}),
+      el('span',{class:'nome'},[el('b',{text:a.nome}),el('small',{text:(n>0?n+(n===1?' tarefa aberta':' tarefas abertas'):'Em ordem')+(a.dominio?' · '+a.dominio:'')})]),
+      el('span',{class:'chev','aria-hidden':'true',text:'›'})
+    ]);
+    b.setAttribute('aria-label', a.nome+', '+(n>0?n+' pendências':'em ordem'));
+    ul.appendChild(el('li',{},[b]));
+  });
+  m.appendChild(ul);
+  m.appendChild(el('p',{class:'muted',text:'Laranja: tem pendências. Verde: em ordem.'}));
+  m.appendChild(el('p',{class:'muted',text:dados.atualizado?('Números do Google Analytics atualizados em '+new Date(dados.atualizado).toLocaleString('pt-BR')+'.'):'Números do Google Analytics: ainda não conectados.'}));
+}
+
+/* ============ Tela do app ============ */
+function telaApp(id){
+  var a=getApp(id); if(!a){ location.hash=''; return; }
+  document.title=a.nome+' — AppHub'; $('titulo').textContent=a.nome; $('btnVoltar').hidden=false;
+  var m=$('main'); m.textContent='';
+  var d=(dados.apps||{})[a.id];
+
+  /* dados */
+  var caixa=el('section',{class:'box'},[el('h2',{text:'Dados'})]);
+  if(d){
+    caixa.appendChild(el('div',{class:'kv'},[
+      el('div',{},[el('b',{text:fmtNum(d.usuarios)}),el('span',{text:'usuários (30 dias)'})]),
+      el('div',{},[el('b',{text:fmtNum(d.sessoes)}),el('span',{text:'sessões'})]),
+      el('div',{},[el('b',{text:fmtTempo(d.tempo_medio_s)}),el('span',{text:'tempo médio'})]),
+      el('div',{},[el('b',{text:fmtNum(d.visualizacoes)}),el('span',{text:'visualizações'})])
+    ]));
+    if(d.telas&&d.telas.length){
+      caixa.appendChild(el('h2',{text:'Telas mais usadas',style:'margin-top:14px'}));
+      var ol=el('ol',{class:'telas'}); d.telas.slice(0,8).forEach(function(t){ ol.appendChild(el('li',{text:t.nome+' — '+fmtNum(t.visualizacoes)})); }); caixa.appendChild(ol);
+    }
+  } else {
+    caixa.appendChild(el('p',{class:'muted',text:a.ga?('Ainda sem números aqui. O Google Analytics deste app já está ligado ('+a.ga+').'):'Este app ainda não tem Google Analytics.'}));
+  }
+  if(a.obs) caixa.appendChild(el('p',{class:'muted',text:a.obs}));
+  var linha=el('div',{class:'row',style:'margin-top:10px;flex-wrap:wrap'});
+  if(a.dominio) linha.appendChild(el('a',{class:'btn',href:'https://'+a.dominio,target:'_blank',rel:'noopener',text:'Abrir o app'}));
+  linha.appendChild(el('a',{class:'btn',href:'https://analytics.google.com/analytics/web/',target:'_blank',rel:'noopener',text:'Abrir o Google Analytics'}));
+  caixa.appendChild(linha);
+  m.appendChild(caixa);
+
+  /* tarefas */
+  var tb=el('section',{class:'box'},[el('h2',{text:'Tarefas'})]);
+  var inp=el('input',{type:'text',id:'novaTarefa',placeholder:'Nova tarefa','aria-label':'Nova tarefa',autocomplete:'off'});
+  var add=el('button',{class:'primary',type:'button',text:'Adicionar',onclick:function(){ addTarefa(a.id, inp.value); }});
+  var mic=el('button',{type:'button','aria-label':'Adicionar por voz',text:'🎤',onclick:function(){ voz(a.id, inp); }});
+  inp.addEventListener('keydown',function(e){ if(e.key==='Enter') addTarefa(a.id, inp.value); });
+  tb.appendChild(el('div',{class:'row'},[inp,mic,add]));
+  var ul=el('ul',{class:'tarefas',id:'listaTarefas'}); tb.appendChild(ul);
+  m.appendChild(tb);
+  desenhaTarefas(a.id);
+
+  /* divulgação */
+  var dv=el('section',{class:'box'},[el('h2',{text:'Divulgação'})]);
+  var painel=el('div',{id:'painelDiv',hidden:'hidden'});
+  dv.appendChild(el('button',{class:'primary',type:'button',text:'Divulgar este app',onclick:function(){ painel.hidden=!painel.hidden; }}));
+  var tx=textoApp(a);
+  var end=el('input',{type:'text',value:a.dominio?('https://'+a.dominio):'',readonly:'readonly','aria-label':'Endereço'});
+  var desc=el('textarea',{'aria-label':'Descrição'}); desc.value=tx.desc;
+  var tags=el('textarea',{'aria-label':'Hashtags'}); tags.value=tx.tags;
+  function guardaTextos(){ estado.textos[a.id]={desc:desc.value,tags:tags.value}; salvar(); }
+  desc.addEventListener('input',guardaTextos); tags.addEventListener('input',guardaTextos);
+  painel.appendChild(el('label',{class:'l',text:'Endereço'})); painel.appendChild(end);
+  painel.appendChild(el('button',{type:'button',text:'Copiar endereço',style:'margin-top:6px',onclick:function(){copiar(end.value);}}));
+  painel.appendChild(el('label',{class:'l',text:'Descrição'})); painel.appendChild(desc);
+  painel.appendChild(el('button',{type:'button',text:'Copiar descrição',style:'margin-top:6px',onclick:function(){copiar(desc.value);}}));
+  painel.appendChild(el('label',{class:'l',text:'Hashtags'})); painel.appendChild(tags);
+  painel.appendChild(el('button',{type:'button',text:'Copiar hashtags',style:'margin-top:6px',onclick:function(){copiar(tags.value);}}));
+  painel.appendChild(el('p',{class:'muted',text:'Copiar o texto pronto para cada rede (endereço + descrição + hashtags):',style:'margin-top:14px'}));
+  function ht(n){ return (tags.value.match(/#[^\s#]+/g)||[]).slice(0,n).join(' '); }
+  var redes=el('div',{class:'redes'});
+  [['YouTube',15],['Facebook',3],['Instagram',30],['TikTok',5]].forEach(function(r){
+    redes.appendChild(el('button',{type:'button',text:r[0],onclick:function(){
+      var partes=[desc.value.trim(), end.value.trim(), ht(r[1])].filter(Boolean);
+      copiar(partes.join('\n\n')); toast('Texto para '+r[0]+' copiado');
+    }}));
+  });
+  painel.appendChild(redes);
+  dv.appendChild(painel);
+  m.appendChild(dv);
+}
+
+/* ============ Tarefas ============ */
+function lista(id){ if(!estado.tarefas[id]) estado.tarefas[id]=[]; return estado.tarefas[id]; }
+function addTarefa(id, txt){
+  txt=(txt||'').trim(); if(!txt){ toast('Escreva a tarefa'); return; }
+  lista(id).unshift({id:Date.now()+'-'+Math.random().toString(36).slice(2,6), txt:txt, feita:false});
+  salvar(); var i=$('novaTarefa'); if(i) i.value=''; desenhaTarefas(id);
+}
+function desenhaTarefas(id){
+  var ul=$('listaTarefas'); if(!ul) return; ul.textContent='';
+  var L=lista(id);
+  if(!L.length){ ul.appendChild(el('li',{class:'muted',text:'Nenhuma tarefa.'})); return; }
+  L.forEach(function(t){
+    var li=el('li',{class:'tarefa'+(t.feita?' feita':'')});
+    var cb=el('input',{type:'checkbox','aria-label':'Concluída'}); cb.checked=t.feita;
+    cb.addEventListener('change',function(){ t.feita=cb.checked; salvar(); desenhaTarefas(id); });
+    var txt=el('span',{class:'txt',text:t.txt});
+    var ed=el('button',{type:'button',text:'Editar',onclick:function(){
+      var inp=el('input',{type:'text','aria-label':'Editar tarefa'}); inp.value=t.txt;
+      var ok=el('button',{class:'primary',type:'button',text:'Salvar',onclick:function(){ var v=inp.value.trim(); if(v){ t.txt=v; salvar(); } desenhaTarefas(id); }});
+      inp.addEventListener('keydown',function(e){ if(e.key==='Enter') ok.click(); });
+      li.textContent=''; li.appendChild(inp); li.appendChild(ok); inp.focus();
+    }});
+    var del=el('button',{type:'button',class:'danger',text:'Apagar',onclick:function(){
+      if(del._ok){ var i=L.indexOf(t); if(i>=0) L.splice(i,1); salvar(); desenhaTarefas(id); }
+      else { del._ok=true; del.textContent='Confirmar?'; setTimeout(function(){ del._ok=false; del.textContent='Apagar'; },3000); }
+    }});
+    li.appendChild(cb); li.appendChild(txt); li.appendChild(ed); li.appendChild(del);
+    ul.appendChild(li);
+  });
+}
+function voz(id, inp){
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ toast('Este navegador não tem ditado por voz'); return; }
+  var r=new SR(); r.lang='pt-BR'; r.interimResults=false; r.maxAlternatives=1;
+  toast('Pode falar...');
+  r.onresult=function(e){ var t=e.results[0][0].transcript; addTarefa(id, t.charAt(0).toUpperCase()+t.slice(1)); };
+  r.onerror=function(){ toast('Não consegui ouvir'); };
+  try{ r.start(); }catch(e){ toast('Não consegui iniciar o microfone'); }
+}
+
+/* ============ Rotas ============ */
+function rota(){
+  var h=location.hash||''; var m=h.match(/^#\/app\/([\w-]+)/);
+  if(m) telaApp(m[1]); else telaPrincipal();
+  window.scrollTo(0,0);
+}
+$('btnVoltar').addEventListener('click',function(){ location.hash=''; });
+window.addEventListener('hashchange',rota);
+rota();
+/* Números do Google Analytics (arquivo dados.json, atualizado por rotina; vazio até conectar) */
+fetch('dados.json',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(j){ if(j&&j.apps){ dados=j; rota(); } }).catch(function(){});
+</script>
+</body>
+</html>
