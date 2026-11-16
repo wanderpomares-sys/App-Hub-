@@ -65,11 +65,11 @@ label.l{display:block;font-weight:700;margin:12px 0 4px}
 <script>
 /* ============ Lista de apps (edite aqui para incluir apps novos) ============ */
 var APPS = [
-  {id:'imperio', nome:'Império das Máquinas', dominio:'imperiodasmaquinaspesadas.com.br', ga:'G-CKZJJV1B8E', desc:'Jogo de estratégia: gerencie uma empresa de máquinas pesadas, faça manutenção, escolha contratos e construa seu império.', tags:'#ImperioDasMaquinas #jogo #estrategia #maquinaspesadas #jogosmobile'},
-  {id:'babadopet', nome:'Babá do Pet', dominio:'babadopet.com.br', ga:'G-G16QMJ72XX', desc:'App grátis de cuidados com pets: agenda, lembretes e dicas para o dia a dia do seu bichinho. Sem cadastro.', tags:'#BabaDoPet #pets #cuidadospet #petlovers #app'},
-  {id:'smartfinance', nome:'Smart Finance Family', dominio:'smartfinancefamily.com.br', ga:'G-Z7FZXMZ9QB', desc:'Controle financeiro da família, com os dados guardados só no seu aparelho.', tags:'#SmartFinanceFamily #financaspessoais #controlefinanceiro #educacaofinanceira #app'},
-  {id:'achados', nome:'Achados de Condomínio', dominio:'achadosdecondominios.com.br', ga:'G-DQJZF2ZTJP', desc:'Compre, venda e troque com os vizinhos do seu condomínio, com segurança e sem sair do prédio.', tags:'#AchadosDeCondominio #condominio #vizinhos #comprasevendas #app'},
-  {id:'gemmo', nome:'Gemmo Combo', dominio:'gemmo.com.br', ga:'G-776C53RGP8', desc:'Jogo de combinar gemas com fases, combos e prêmios. Grátis, sem cadastro.', tags:'#GemmoCombo #jogo #match3 #puzzle #jogosmobile'},
+  {id:'imperio', nome:'Império das Máquinas', dominio:'imperiodasmaquinaspesadas.com.br', ga:'G-CKZJJV1B8E', desc:'Jogo de estratégia: gerencie uma empresa de máquinas pesadas, faça manutenção, escolha contratos e construa seu império.', tags:'#ImperioDasMaquinas #jogosmobile #jogodeestrategia #maquinaspesadas #jogosoffline #gamedev #jogosbrasileiros #simulador #games #gamer'},
+  {id:'babadopet', nome:'Babá do Pet', dominio:'babadopet.com.br', ga:'G-G16QMJ72XX', desc:'App grátis de cuidados com pets: agenda, lembretes e dicas para o dia a dia do seu bichinho. Sem cadastro.', tags:'#BabaDoPet #pets #petlovers #cuidadoscompet #cachorro #gato #maedepet #paidepet #amordepet #instapet'},
+  {id:'smartfinance', nome:'Smart Finance Family', dominio:'smartfinancefamily.com.br', ga:'G-Z7FZXMZ9QB', desc:'Controle financeiro da família, com os dados guardados só no seu aparelho.', tags:'#SmartFinanceFamily #educacaofinanceira #financaspessoais #controlefinanceiro #organizacaofinanceira #orcamentofamiliar #dinheiro #financasfamiliares #dicasdefinancas #planilhadegastos'},
+  {id:'achados', nome:'Achados de Condomínio', dominio:'achadosdecondominios.com.br', ga:'G-DQJZF2ZTJP', desc:'Compre, venda e troque com os vizinhos do seu condomínio, com segurança e sem sair do prédio.', tags:'#AchadosDeCondominio #condominio #sindico #vizinhos #moradores #vidaemcondominio #comprasevendas #brecho #desapego #apartamento'},
+  {id:'gemmo', nome:'Gemmo Combo', dominio:'gemmo.com.br', ga:'G-776C53RGP8', desc:'Jogo de combinar gemas com fases, combos e prêmios. Grátis, sem cadastro.', tags:'#GemmoCombo #match3 #jogosdepuzzle #jogosmobile #jogosgratis #jogosoffline #jogosbrasileiros #puzzle #games #gamer'},
   {id:'telejogo', nome:'Tele Game Vintage', dominio:'', ga:'', desc:'', tags:''},
   {id:'zap', nome:'ZAP Organiza', dominio:'', ga:'', desc:'', tags:''},
   {id:'radar', nome:'Radar de golpes', dominio:'', ga:'', desc:'', tags:'', obs:'Ainda sem divulgação, em teste.'}
@@ -194,7 +194,7 @@ function telaApp(id){
   painel.appendChild(el('p',{class:'muted',text:'Copiar o texto pronto para cada rede (endereço + descrição + hashtags):',style:'margin-top:14px'}));
   function ht(n){ return (tags.value.match(/#[^\s#]+/g)||[]).slice(0,n).join(' '); }
   var redes=el('div',{class:'redes'});
-  [['YouTube',15],['Facebook',3],['Instagram',30],['TikTok',5]].forEach(function(r){
+  [['YouTube',5],['Facebook',3],['Instagram',10],['TikTok',5]].forEach(function(r){
     redes.appendChild(el('button',{type:'button',text:r[0],onclick:function(){
       var partes=[desc.value.trim(), end.value.trim(), ht(r[1])].filter(Boolean);
       copiar(partes.join('\n\n')); toast('Texto para '+r[0]+' copiado');
