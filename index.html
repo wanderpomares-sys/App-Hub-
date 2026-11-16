@@ -54,6 +54,13 @@ textarea{min-height:96px;resize:vertical}
 .telas{margin:8px 0 0;padding-left:20px}
 .toast{position:fixed;left:50%;bottom:max(20px,env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:12px;z-index:20;max-width:90vw}
 label.l{display:block;font-weight:700;margin:12px 0 4px}
+.album{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px}
+.album .mi{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--bg);border:1px solid var(--line);padding:0;min-height:0;cursor:pointer}
+.album .mi img,.album .mi video{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.album .mi .pl{position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.65);color:#fff;border-radius:99px;padding:2px 8px;font-size:13px}
+.visor{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:12px}
+.visor .m{max-width:100%;max-height:68vh;border-radius:8px}
+.visor .acoes{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -205,6 +212,101 @@ function telaApp(id){
   painel.appendChild(redes);
   dv.appendChild(painel);
   m.appendChild(dv);
+  m.appendChild(secaoAlbum(a));
+}
+
+
+/* ============ Álbum de fotos e vídeos (fica neste aparelho, em IndexedDB) ============ */
+var _db=null;
+function abreDB(){
+  return new Promise(function(ok,no){
+    if(_db) return ok(_db);
+    if(!window.indexedDB) return no(new Error('sem IndexedDB'));
+    var rq=indexedDB.open('apphub-album',1);
+    rq.onupgradeneeded=function(){ var st=rq.result.createObjectStore('midias',{keyPath:'id'}); st.createIndex('app','app'); };
+    rq.onsuccess=function(){ _db=rq.result; ok(_db); };
+    rq.onerror=function(){ no(rq.error); };
+  });
+}
+function dbTx(modo,fn){
+  return abreDB().then(function(db){ return new Promise(function(ok,no){
+    var tx=db.transaction('midias',modo), st=tx.objectStore('midias'), r=fn(st);
+    tx.oncomplete=function(){ ok(r&&r.result); }; tx.onerror=function(){ no(tx.error); }; tx.onabort=function(){ no(tx.error); };
+  }); });
+}
+function midiasDoApp(app){ return dbTx('readonly',function(st){ return st.index('app').getAll(app); }).then(function(l){ return (l||[]).sort(function(a,b){return b.t-a.t;}); }); }
+function guardaMidia(m){ return dbTx('readwrite',function(st){ return st.put(m); }); }
+function apagaMidia(id){ return dbTx('readwrite',function(st){ return st.delete(id); }); }
+function fmtMB(b){ return (b/1048576).toFixed(b<10485760?1:0).replace('.',',')+' MB'; }
+
+var _urls=[];
+function limpaUrls(){ _urls.forEach(function(u){URL.revokeObjectURL(u);}); _urls=[]; }
+function urlDe(blob){ var u=URL.createObjectURL(blob); _urls.push(u); return u; }
+
+function secaoAlbum(a){
+  var box=el('section',{class:'box'},[el('h2',{text:'Fotos e vídeos'})]);
+  box.appendChild(el('p',{class:'muted',text:'Guarde aqui o material de divulgação deste app. Fica só neste aparelho.'}));
+  var inp=el('input',{type:'file',accept:'image/*,video/*',multiple:'multiple',hidden:'hidden'});
+  var info=el('p',{class:'muted'});
+  var grade=el('div',{class:'album'});
+  var btn=el('button',{class:'primary',type:'button',text:'Adicionar fotos e vídeos',onclick:function(){ inp.click(); }});
+  box.appendChild(btn); box.appendChild(inp); box.appendChild(info); box.appendChild(grade);
+
+  function desenha(){
+    midiasDoApp(a.id).then(function(L){
+      limpaUrls(); grade.textContent='';
+      var total=L.reduce(function(s,m){return s+(m.blob?m.blob.size:0);},0);
+      info.textContent=L.length?(L.length+(L.length===1?' arquivo':' arquivos')+' · '+fmtMB(total)):'Nenhum arquivo ainda.';
+      L.forEach(function(m){
+        var video=m.tipo.indexOf('video')===0;
+        var u=urlDe(m.blob);
+        var mi=el('button',{class:'mi',type:'button','aria-label':(video?'Vídeo ':'Foto ')+m.nome,onclick:function(){ visor(m,u,video,desenha); }});
+        if(video){ var v=el('video',{preload:'metadata',muted:'muted',playsinline:'playsinline'}); v.src=u+'#t=0.1'; mi.appendChild(v); mi.appendChild(el('span',{class:'pl',text:'▶'})); }
+        else mi.appendChild(el('img',{src:u,alt:'',loading:'lazy'}));
+        grade.appendChild(mi);
+      });
+    }).catch(function(){ info.textContent='Não consegui abrir o álbum neste navegador.'; });
+  }
+  inp.addEventListener('change',function(){
+    var fs=Array.prototype.slice.call(inp.files||[]); inp.value='';
+    if(!fs.length) return;
+    if(navigator.storage&&navigator.storage.persist) navigator.storage.persist();
+    var feitos=0;
+    fs.reduce(function(p,f){
+      return p.then(function(){
+        if(!/^(image|video)\//.test(f.type)) return;
+        return guardaMidia({id:Date.now()+'-'+Math.random().toString(36).slice(2,7),app:a.id,nome:f.name||'arquivo',tipo:f.type,blob:f,t:Date.now()}).then(function(){feitos++;});
+      });
+    },Promise.resolve()).then(function(){ toast(feitos+(feitos===1?' arquivo salvo':' arquivos salvos')); desenha(); })
+    .catch(function(){ toast('Sem espaço ou erro ao salvar'); desenha(); });
+  });
+  desenha();
+  return box;
+}
+
+function visor(m,u,video,depois){
+  var v=el('div',{class:'visor',role:'dialog','aria-label':'Visualizar'});
+  var midia=video?el('video',{class:'m',controls:'controls',playsinline:'playsinline',autoplay:'autoplay'}):el('img',{class:'m',alt:''});
+  midia.src=u;
+  function fecha(){ v.remove(); }
+  var acoes=el('div',{class:'acoes'});
+  acoes.appendChild(el('button',{class:'primary',type:'button',text:'Compartilhar',onclick:function(){
+    var f=new File([m.blob],m.nome,{type:m.tipo});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){ navigator.share({files:[f]}).catch(function(){}); }
+    else toast('Este navegador não compartilha arquivos. Use Baixar.');
+  }}));
+  acoes.appendChild(el('button',{type:'button',text:'Baixar',onclick:function(){
+    var a=el('a',{href:u,download:m.nome}); document.body.appendChild(a); a.click(); a.remove();
+  }}));
+  var del=el('button',{type:'button',class:'danger',text:'Apagar',onclick:function(){
+    if(del._ok){ apagaMidia(m.id).then(function(){ fecha(); depois(); toast('Apagado'); }); }
+    else { del._ok=true; del.textContent='Confirmar?'; setTimeout(function(){ del._ok=false; del.textContent='Apagar'; },3000); }
+  }});
+  acoes.appendChild(del);
+  acoes.appendChild(el('button',{type:'button',text:'Fechar',onclick:fecha}));
+  v.appendChild(midia); v.appendChild(acoes);
+  v.addEventListener('click',function(e){ if(e.target===v) fecha(); });
+  document.body.appendChild(v);
 }
 
 /* ============ Tarefas ============ */
@@ -249,6 +351,7 @@ function voz(id, inp){
 
 /* ============ Rotas ============ */
 function rota(){
+  limpaUrls();
   var h=location.hash||''; var m=h.match(/^#\/app\/([\w-]+)/);
   if(m) telaApp(m[1]); else telaPrincipal();
   window.scrollTo(0,0);
