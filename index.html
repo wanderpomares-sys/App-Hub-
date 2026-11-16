@@ -61,6 +61,37 @@ label.l{display:block;font-weight:700;margin:12px 0 4px}
 .visor{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:12px}
 .visor .m{max-width:100%;max-height:68vh;border-radius:8px}
 .visor .acoes{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+
+/* ---- visual colorido ---- */
+:root{--acc:#0F5964;--bgf:linear-gradient(180deg,#E3F4F6 0,#F3F6F7 260px)}
+@media (prefers-color-scheme:dark){:root{--bgf:linear-gradient(180deg,#10353C 0,#0B1A1E 260px)}}
+body{background:var(--bgf) no-repeat,var(--bg);background-color:var(--bg)}
+header.top{background:linear-gradient(135deg,#0F5964,#1B8A9A);color:#fff;border-bottom:0;box-shadow:0 3px 14px rgba(15,89,100,.28)}
+header.top button{background:rgba(255,255,255,.18);border-color:transparent;color:#fff}
+.tot{border:0;color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.12);display:flex;flex-direction:column;gap:2px}
+.tot span{color:rgba(255,255,255,.92)}
+.tot .ic{font-size:22px;line-height:1}
+.tot.t1{background:linear-gradient(135deg,#0F5964,#1B8A9A)}
+.tot.t2{background:linear-gradient(135deg,#C2410C,#F08A1C)}
+.tot.t3{background:linear-gradient(135deg,#6D28D9,#8B5CF6)}
+.tot.t4{background:linear-gradient(135deg,#15803D,#22A559)}
+.app{border-left:6px solid var(--acc);box-shadow:0 2px 8px rgba(0,0,0,.06);transition:transform .12s}
+.app:active{transform:scale(.985)}
+.av{width:46px;height:46px;border-radius:14px;background:var(--acc);display:flex;align-items:center;justify-content:center;font-size:24px;flex:none}
+.hero{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,var(--acc),color-mix(in srgb,var(--acc) 62%,#000));color:#fff;border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.hero .av{background:rgba(255,255,255,.22);width:58px;height:58px;font-size:32px;border-radius:18px}
+.hero b{font-size:21px;display:block;line-height:1.2}
+.hero small{opacity:.92;word-break:break-all}
+.hero .st{display:inline-block;margin-top:6px;background:rgba(255,255,255,.22);border-radius:99px;padding:2px 10px;font-size:14px}
+section.box{border:0;border-top:4px solid var(--acc);box-shadow:0 3px 12px rgba(0,0,0,.07)}
+section.box h2{color:var(--acc)}
+@media (prefers-color-scheme:dark){section.box h2{color:color-mix(in srgb,var(--acc) 45%,#fff)}}
+button.primary,.btn.primary{background:var(--acc);border-color:var(--acc);color:#fff}
+.redes button:nth-child(1){background:#FF0000;color:#fff;border-color:#FF0000}
+.redes button:nth-child(2){background:#1877F2;color:#fff;border-color:#1877F2}
+.redes button:nth-child(3){background:linear-gradient(45deg,#F58529,#DD2A7B,#8134AF);color:#fff;border-color:transparent}
+.redes button:nth-child(4){background:#111;color:#fff;border-color:#111}
+.redes button{font-weight:700}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -83,6 +114,8 @@ var APPS = [
   {id:'telejogo', nome:'Telegame77 Vintage', dominio:'telegame77.com.br', ga:'G-JMCS7PB32Z', prop:'558926521', desc:'Telegame77: o clássico jogo de raquete e bola dos anos 70, em 3D. Paredão, tênis, futebol e barreira, com campeonato e ranking. Grátis e funciona sem internet.', tags:'#Telegame77 #jogosretro #jogosvintage #retrogames #jogosclassicos #anos70 #jogosmobile #jogosgratis #jogosoffline #games'},
   {id:'radar', nome:'Radar de golpes', dominio:'', ga:'', desc:'', tags:'', obs:'Ainda sem divulgação, em teste.'}
 ];
+var VIS={imperio:['🚜','#B45309'],babadopet:['🐾','#DB2777'],smartfinance:['💰','#2563EB'],achados:['🏢','#7C3AED'],gemmo:['💎','#E11D48'],telejogo:['🕹️','#0E7490'],radar:['📡','#475569']};
+function vis(id){ return VIS[id]||['📱','#0F5964']; }
 var KEY='apphub.v1';
 var estado = {tarefas:{}, textos:{}};
 var dados = {atualizado:null, apps:{}};
@@ -116,23 +149,25 @@ function textoApp(a){ var t=estado.textos[a.id]||{}; return {desc:(t.desc!==unde
 /* ============ Tela principal ============ */
 function telaPrincipal(){
   document.title='AppHub'; $('titulo').textContent='AppHub'; $('btnVoltar').hidden=true;
-  var m=$('main'); m.textContent='';
+  var m=$('main'); m.textContent=''; m.style.removeProperty('--acc');
   var comPend=APPS.filter(function(a){return abertas(a.id)>0;}).length;
   var totAbertas=APPS.reduce(function(s,a){return s+abertas(a.id);},0);
   var totUsuarios=null; Object.keys(dados.apps||{}).forEach(function(k){ var u=dados.apps[k]&&dados.apps[k].usuarios; if(typeof u==='number') totUsuarios=(totUsuarios||0)+u; });
   var tot=el('div',{class:'totais'},[
-    el('div',{class:'tot'},[el('b',{text:String(APPS.length)}),el('span',{text:'apps'})]),
-    el('div',{class:'tot'},[el('b',{text:String(comPend)}),el('span',{text:'com pendências'})]),
-    el('div',{class:'tot'},[el('b',{text:String(totAbertas)}),el('span',{text:'tarefas abertas'})]),
-    el('div',{class:'tot'},[el('b',{text:fmtNum(totUsuarios)}),el('span',{text:'usuários (30 dias)'})])
+    el('div',{class:'tot t1'},[el('span',{class:'ic',text:'📱'}),el('b',{text:String(APPS.length)}),el('span',{text:'apps'})]),
+    el('div',{class:'tot t2'},[el('span',{class:'ic',text:'⚠️'}),el('b',{text:String(comPend)}),el('span',{text:'com pendências'})]),
+    el('div',{class:'tot t3'},[el('span',{class:'ic',text:'✅'}),el('b',{text:String(totAbertas)}),el('span',{text:'tarefas abertas'})]),
+    el('div',{class:'tot t4'},[el('span',{class:'ic',text:'👥'}),el('b',{text:fmtNum(totUsuarios)}),el('span',{text:'usuários (30 dias)'})])
   ]);
   m.appendChild(tot);
   var ul=el('ul',{class:'lista'});
   APPS.forEach(function(a){
     var n=abertas(a.id);
-    var b=el('button',{class:'app',type:'button',onclick:function(){location.hash='#/app/'+a.id;}},[
-      el('span',{class:'dot '+(n>0?'warn':'ok'),'aria-hidden':'true'}),
+    var v=vis(a.id);
+    var b=el('button',{class:'app',type:'button',style:'--acc:'+v[1],onclick:function(){location.hash='#/app/'+a.id;}},[
+      el('span',{class:'av','aria-hidden':'true',text:v[0]}),
       el('span',{class:'nome'},[el('b',{text:a.nome}),el('small',{text:(n>0?n+(n===1?' tarefa aberta':' tarefas abertas'):'Em ordem')+(a.dominio?' · '+a.dominio:'')})]),
+      el('span',{class:'dot '+(n>0?'warn':'ok'),'aria-hidden':'true'}),
       el('span',{class:'chev','aria-hidden':'true',text:'›'})
     ]);
     b.setAttribute('aria-label', a.nome+', '+(n>0?n+' pendências':'em ordem'));
@@ -148,6 +183,12 @@ function telaApp(id){
   var a=getApp(id); if(!a){ location.hash=''; return; }
   document.title=a.nome+' — AppHub'; $('titulo').textContent=a.nome; $('btnVoltar').hidden=false;
   var m=$('main'); m.textContent='';
+  var v=vis(a.id); m.style.setProperty('--acc',v[1]);
+  var n0=abertas(a.id);
+  m.appendChild(el('div',{class:'hero'},[
+    el('span',{class:'av','aria-hidden':'true',text:v[0]}),
+    el('div',{},[el('b',{text:a.nome}),el('small',{text:a.dominio||'Sem endereço ainda'}),el('br'),el('span',{class:'st',text:n0>0?('🟠 '+n0+(n0===1?' tarefa aberta':' tarefas abertas')):'🟢 Em ordem'})])
+  ]));
   var d=(dados.apps||{})[a.id];
 
   /* dados */
