@@ -249,11 +249,23 @@ function telaApp(id){
   var kit=el('div',{id:'kit',class:'kit',hidden:'hidden'});
   var REDES=[['YouTube',5,'https://studio.youtube.com'],['Facebook',5,'https://www.facebook.com'],['Instagram',10,'https://www.instagram.com'],['TikTok',5,'https://www.tiktok.com/upload']];
   function abreKit(r){
-    var texto=[desc.value.trim()||a.desc, end.value.trim(), ht(r[1])].filter(Boolean).join('\n\n');
+    var texto=[a.nome, desc.value.trim()||a.desc, end.value.trim(), ht(r[1])].filter(Boolean).join('\n\n');
     kit.textContent=''; kit.hidden=false;
     kit.appendChild(el('h3',{text:'Kit para '+r[0]}));
     var ta=el('textarea',{'aria-label':'Texto do kit'}); ta.value=texto; ta.style.minHeight='170px'; kit.appendChild(ta);
-    kit.appendChild(el('p',{class:'muted',text:'Toque em "Copiar tudo pronto", abra o '+r[0]+' e cole no post. O texto já inclui descrição, endereço e '+r[1]+' hashtags (pode editar acima).'}));
+    kit.appendChild(el('p',{class:'muted',text:'Toque em "Copiar tudo pronto", abra o '+r[0]+' e cole no post. O texto já inclui título, descrição, endereço e '+r[1]+' hashtags (pode editar acima).'}));
+    /* imagens do álbum: toque para copiar a imagem */
+    var faixa=el('div',{class:'album',style:'margin-top:10px'});
+    var tFaixa=el('p',{class:'muted',style:'margin:12px 0 0',text:'Imagens do álbum (toque para copiar a imagem):'});
+    kit.appendChild(tFaixa); kit.appendChild(faixa);
+    midiasDoApp(a.id).then(function(L){
+      var fotos=L.filter(function(m){return m.tipo.indexOf('image')===0;}).slice(0,6);
+      if(!fotos.length){ tFaixa.textContent='Sem fotos no álbum deste app. Adicione em "Fotos e vídeos", mais abaixo.'; return; }
+      fotos.forEach(function(m){
+        var u=urlDe(m.blob);
+        faixa.appendChild(el('button',{class:'mi',type:'button','aria-label':'Copiar imagem',onclick:function(){ copiaImagem(m); }},[el('img',{src:u,alt:''})]));
+      });
+    }).catch(function(){});
     var acoes=el('div',{style:'display:flex;flex-direction:column;gap:8px;margin-top:8px'});
     acoes.appendChild(el('button',{class:'primary',type:'button',text:'📋 Copiar tudo pronto',onclick:function(){ copiar(ta.value); }}));
     acoes.appendChild(el('a',{class:'btn',href:r[2],target:'_blank',rel:'noopener',text:'Copiar e abrir o '+r[0],onclick:function(){ copiar(ta.value); }}));
@@ -376,6 +388,18 @@ function visor(m,u,video,depois){
   v.appendChild(midia); v.appendChild(acoes);
   v.addEventListener('click',function(e){ if(e.target===v) fecha(); });
   document.body.appendChild(v);
+}
+
+
+function copiaImagem(m){
+  try{
+    if(!(navigator.clipboard&&window.ClipboardItem)) throw 0;
+    var png=createImageBitmap(m.blob).then(function(bm){
+      var c=document.createElement('canvas'); c.width=bm.width; c.height=bm.height; c.getContext('2d').drawImage(bm,0,0);
+      return new Promise(function(ok){ c.toBlob(ok,'image/png'); });
+    });
+    navigator.clipboard.write([new ClipboardItem({'image/png':png})]).then(function(){ toast('Imagem copiada. Cole no post.'); },function(){ toast('Não consegui copiar a imagem. Use Mais opções > Compartilhar.'); });
+  }catch(e){ toast('Este navegador não copia imagem. Use Mais opções > Compartilhar.'); }
 }
 
 /* ============ Tarefas ============ */
