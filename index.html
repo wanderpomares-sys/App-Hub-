@@ -253,10 +253,10 @@ function telaApp(id){
     kit.textContent=''; kit.hidden=false;
     kit.appendChild(el('h3',{text:'Kit para '+r[0]}));
     var ta=el('textarea',{'aria-label':'Texto do kit'}); ta.value=texto; ta.style.minHeight='170px'; kit.appendChild(ta);
-    kit.appendChild(el('p',{class:'muted',text:'Já inclui descrição, endereço e '+r[1]+' hashtags. Pode editar. '+(r[0]==='Facebook'||r[0]==='Instagram'?'O '+r[0]+' não recebe texto pronto de outro app: o texto é copiado, e você cola no post.':'')}));
+    kit.appendChild(el('p',{class:'muted',text:'Já inclui descrição, endereço e '+r[1]+' hashtags. Pode editar. '+(r[0]==='Facebook'||r[0]==='Instagram'?'O '+r[0]+' não recebe texto pronto de outro app: o texto é copiado, e você cola no post. Na lista de apps do celular, escolha "Facebook" para o seu perfil; "Grupos" leva só aos grupos.':'')}));
     var acoes=el('div',{class:'redes'});
     acoes.appendChild(el('button',{class:'primary',type:'button',text:'1. Copiar texto',onclick:function(){ copiar(ta.value); }}));
-    acoes.appendChild(el('button',{type:'button',text:'2. Compartilhar com fotos/vídeos',onclick:function(){
+    acoes.appendChild(el('button',{type:'button',text:'2. Compartilhar com fotos/vídeos (você escolhe o app)',onclick:function(){
       copiar(ta.value);
       midiasDoApp(a.id).then(function(L){
         var files=L.slice(0,10).map(function(m){ return new File([m.blob],m.nome,{type:m.tipo}); });
@@ -265,6 +265,9 @@ function telaApp(id){
         else toast('Este navegador não compartilha. Texto copiado.');
       }).catch(function(){ if(navigator.share) navigator.share({text:ta.value}).catch(function(){}); });
     }}));
+    if(r[0]==='Facebook'&&end.value.trim()){
+      acoes.appendChild(el('a',{class:'btn primary',href:'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(end.value.trim()),target:'_blank',rel:'noopener',text:'Compartilhar o link no Facebook (você escolhe: perfil, grupo ou página)',onclick:function(){ copiar(ta.value); }}));
+    }
     acoes.appendChild(el('a',{class:'btn',href:r[2],target:'_blank',rel:'noopener',text:'3. Abrir '+r[0]}));
     kit.appendChild(acoes);
     kit.scrollIntoView({behavior:'smooth',block:'nearest'});
