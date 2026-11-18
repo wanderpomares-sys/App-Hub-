@@ -92,6 +92,8 @@ button.primary,.btn.primary{background:var(--acc);border-color:var(--acc);color:
 .redes button:nth-child(3){background:linear-gradient(45deg,#F58529,#DD2A7B,#8134AF);color:#fff;border-color:transparent}
 .redes button:nth-child(4){background:#111;color:#fff;border-color:#111}
 .redes button{font-weight:700}
+.kit{margin-top:14px;padding:12px;border-radius:14px;background:var(--bg);border:2px solid var(--acc)}
+.kit h3{margin:0 0 8px;color:var(--acc)}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -229,7 +231,7 @@ function telaApp(id){
   var dv=el('section',{class:'box'},[el('h2',{text:'Divulgação'})]);
   var painel=el('div',{id:'painelDiv',hidden:'hidden'});
   dv.appendChild(el('button',{class:'primary',type:'button',text:'Divulgar este app',onclick:function(){ painel.hidden=!painel.hidden; }}));
-  var tx=textoApp(a);
+  var tx=textoApp(a); if(!String(tx.tags||'').trim()) tx.tags=a.tags||''; if(!String(tx.desc||'').trim()) tx.desc=a.desc||'';
   var end=el('input',{type:'text',value:a.dominio?('https://'+a.dominio):'',readonly:'readonly','aria-label':'Endereço'});
   var desc=el('textarea',{'aria-label':'Descrição'}); desc.value=tx.desc;
   var tags=el('textarea',{'aria-label':'Hashtags'}); tags.value=tx.tags;
@@ -241,16 +243,36 @@ function telaApp(id){
   painel.appendChild(el('button',{type:'button',text:'Copiar descrição',style:'margin-top:6px',onclick:function(){copiar(desc.value);}}));
   painel.appendChild(el('label',{class:'l',text:'Hashtags'})); painel.appendChild(tags);
   painel.appendChild(el('button',{type:'button',text:'Copiar hashtags',style:'margin-top:6px',onclick:function(){copiar(tags.value);}}));
-  painel.appendChild(el('p',{class:'muted',text:'Copiar o texto pronto para cada rede (endereço + descrição + hashtags):',style:'margin-top:14px'}));
-  function ht(n){ return (tags.value.match(/#[^\s#]+/g)||[]).slice(0,n).join(' '); }
-  var redes=el('div',{class:'redes'});
-  [['YouTube',5],['Facebook',3],['Instagram',10],['TikTok',5]].forEach(function(r){
-    redes.appendChild(el('button',{type:'button',text:r[0],onclick:function(){
-      var partes=[desc.value.trim(), end.value.trim(), ht(r[1])].filter(Boolean);
-      copiar(partes.join('\n\n')); toast('Texto para '+r[0]+' copiado');
+  painel.appendChild(el('p',{class:'muted',text:'Toque na rede para montar o kit pronto (descrição + endereço + hashtags):',style:'margin-top:14px'}));
+  function tagsAtuais(){ return tags.value.trim()?tags.value:(a.tags||''); }
+  function ht(n){ return (tagsAtuais().match(/#[^\s#]+/g)||[]).slice(0,n).join(' '); }
+  var kit=el('div',{id:'kit',class:'kit',hidden:'hidden'});
+  var REDES=[['YouTube',5,'https://studio.youtube.com'],['Facebook',5,'https://www.facebook.com'],['Instagram',10,'https://www.instagram.com'],['TikTok',5,'https://www.tiktok.com/upload']];
+  function abreKit(r){
+    var texto=[desc.value.trim()||a.desc, end.value.trim(), ht(r[1])].filter(Boolean).join('\n\n');
+    kit.textContent=''; kit.hidden=false;
+    kit.appendChild(el('h3',{text:'Kit para '+r[0]}));
+    var ta=el('textarea',{'aria-label':'Texto do kit'}); ta.value=texto; ta.style.minHeight='170px'; kit.appendChild(ta);
+    kit.appendChild(el('p',{class:'muted',text:'Já inclui descrição, endereço e '+r[1]+' hashtags. Pode editar. '+(r[0]==='Facebook'||r[0]==='Instagram'?'O '+r[0]+' não recebe texto pronto de outro app: o texto é copiado, e você cola no post.':'')}));
+    var acoes=el('div',{class:'redes'});
+    acoes.appendChild(el('button',{class:'primary',type:'button',text:'1. Copiar texto',onclick:function(){ copiar(ta.value); }}));
+    acoes.appendChild(el('button',{type:'button',text:'2. Compartilhar com fotos/vídeos',onclick:function(){
+      copiar(ta.value);
+      midiasDoApp(a.id).then(function(L){
+        var files=L.slice(0,10).map(function(m){ return new File([m.blob],m.nome,{type:m.tipo}); });
+        if(files.length&&navigator.canShare&&navigator.canShare({files:files})){ navigator.share({files:files,text:ta.value}).catch(function(){}); }
+        else if(navigator.share){ if(!files.length) toast('Álbum vazio: compartilhando só o texto'); navigator.share({text:ta.value}).catch(function(){}); }
+        else toast('Este navegador não compartilha. Texto copiado.');
+      }).catch(function(){ if(navigator.share) navigator.share({text:ta.value}).catch(function(){}); });
     }}));
-  });
+    acoes.appendChild(el('a',{class:'btn',href:r[2],target:'_blank',rel:'noopener',text:'3. Abrir '+r[0]}));
+    kit.appendChild(acoes);
+    kit.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+  var redes=el('div',{class:'redes'});
+  REDES.forEach(function(r){ redes.appendChild(el('button',{type:'button',text:r[0],onclick:function(){ abreKit(r); }})); });
   painel.appendChild(redes);
+  painel.appendChild(kit);
   dv.appendChild(painel);
   m.appendChild(dv);
   m.appendChild(secaoAlbum(a));
