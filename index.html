@@ -253,10 +253,14 @@ function telaApp(id){
     kit.textContent=''; kit.hidden=false;
     kit.appendChild(el('h3',{text:'Kit para '+r[0]}));
     var ta=el('textarea',{'aria-label':'Texto do kit'}); ta.value=texto; ta.style.minHeight='170px'; kit.appendChild(ta);
-    kit.appendChild(el('p',{class:'muted',text:'Já inclui descrição, endereço e '+r[1]+' hashtags. Pode editar. '+(r[0]==='Facebook'||r[0]==='Instagram'?'O '+r[0]+' não recebe texto pronto de outro app: o texto é copiado, e você cola no post. Na lista de apps do celular, escolha "Facebook" para o seu perfil; "Grupos" leva só aos grupos.':'')}));
-    var acoes=el('div',{class:'redes'});
-    acoes.appendChild(el('button',{class:'primary',type:'button',text:'1. Copiar texto',onclick:function(){ copiar(ta.value); }}));
-    acoes.appendChild(el('button',{type:'button',text:'2. Compartilhar com fotos/vídeos (você escolhe o app)',onclick:function(){
+    kit.appendChild(el('p',{class:'muted',text:'Toque em "Copiar tudo pronto", abra o '+r[0]+' e cole no post. O texto já inclui descrição, endereço e '+r[1]+' hashtags (pode editar acima).'}));
+    var acoes=el('div',{style:'display:flex;flex-direction:column;gap:8px;margin-top:8px'});
+    acoes.appendChild(el('button',{class:'primary',type:'button',text:'📋 Copiar tudo pronto',onclick:function(){ copiar(ta.value); }}));
+    acoes.appendChild(el('a',{class:'btn',href:r[2],target:'_blank',rel:'noopener',text:'Copiar e abrir o '+r[0],onclick:function(){ copiar(ta.value); }}));
+    kit.appendChild(acoes);
+    var mais=el('details',{style:'margin-top:12px'},[el('summary',{text:'Mais opções (fotos e vídeos, escolher destino)'})]);
+    var extra=el('div',{style:'display:flex;flex-direction:column;gap:8px;margin-top:8px'});
+    extra.appendChild(el('button',{type:'button',text:'Compartilhar com fotos/vídeos do álbum',onclick:function(){
       copiar(ta.value);
       midiasDoApp(a.id).then(function(L){
         var files=L.slice(0,10).map(function(m){ return new File([m.blob],m.nome,{type:m.tipo}); });
@@ -266,10 +270,9 @@ function telaApp(id){
       }).catch(function(){ if(navigator.share) navigator.share({text:ta.value}).catch(function(){}); });
     }}));
     if(r[0]==='Facebook'&&end.value.trim()){
-      acoes.appendChild(el('a',{class:'btn primary',href:'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(end.value.trim()),target:'_blank',rel:'noopener',text:'Compartilhar o link no Facebook (você escolhe: perfil, grupo ou página)',onclick:function(){ copiar(ta.value); }}));
+      extra.appendChild(el('a',{class:'btn',href:'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(end.value.trim()),target:'_blank',rel:'noopener',text:'Compartilhar só o link (escolher perfil, grupo ou página)',onclick:function(){ copiar(ta.value); }}));
     }
-    acoes.appendChild(el('a',{class:'btn',href:r[2],target:'_blank',rel:'noopener',text:'3. Abrir '+r[0]}));
-    kit.appendChild(acoes);
+    mais.appendChild(extra); kit.appendChild(mais);
     kit.scrollIntoView({behavior:'smooth',block:'nearest'});
   }
   var redes=el('div',{class:'redes'});
